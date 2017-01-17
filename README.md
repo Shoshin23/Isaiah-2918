@@ -1,2 +1,2 @@
 # Isaiah-2918
-Help visually impaired people pick better clothes using computer vision.
+An app to help visually impaired people pick better clothes using computer vision.
