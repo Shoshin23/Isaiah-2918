@@ -24,6 +24,8 @@ class ViewController: UIViewController {
     var backFacingCamera:AVCaptureDevice?
     var currentDevice:AVCaptureDevice?
     
+    var responseLabels: [AWSRekognitionLabel]?
+    
     
 
     
@@ -64,6 +66,7 @@ class ViewController: UIViewController {
         // Bring the camera button to front
         captureSession.startRunning()
         
+        
         let block = { () -> Void in
             let videoConnection = self.stillImageOutput?.connection(withMediaType: AVMediaTypeVideo)
             self.stillImageOutput?.captureStillImageAsynchronously(from: videoConnection,
@@ -82,13 +85,35 @@ class ViewController: UIViewController {
             
             rekognitionClient.detectLabels(request) {(response:AWSRekognitionDetectLabelsResponse?, error:Error?) in
                 if error == nil {
-                    print(response?.labels)
+                    self.responseLabels = (response?.labels)!
+                    
+                    
+                    let audioSession = AVAudioSession.sharedInstance()
+                    do {
+                        try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord, with: AVAudioSessionCategoryOptions.defaultToSpeaker)
+                    }
+                    catch {
+                        print("Error")
+                    }
+
+                   
+                    let speechSynthesizer = AVSpeechSynthesizer()
+                    
+                    let speechUtterance = AVSpeechUtterance(string: (self.responseLabels?[0].name!)!)
+                    speechUtterance.rate = 0.25
+                    speechUtterance.pitchMultiplier = 0.25
+                    speechUtterance.volume = 1.0
+                    speechSynthesizer.speak(speechUtterance)
+
                 }
                 else {
                     print(error!)
                 }
             }
         }
+        
+        //speak out the shit. 
+        
         
         volumeButtonHandler = JPSVolumeButtonHandler(up: block, downBlock: block)
         volumeButtonHandler?.start(true)
