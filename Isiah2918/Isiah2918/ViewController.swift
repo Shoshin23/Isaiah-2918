@@ -96,7 +96,14 @@ class ViewController: UIViewController {
                         print("Error")
                     }
 
-                   
+                   //do some removing here and there. 
+                    for(index,var label) in (self.responseLabels?.enumerated())! {
+                        if label.name == "Clothing"{
+                            self.responseLabels?.remove(at: index)
+                    }
+                    }
+                    
+                    
                     let speechSynthesizer = AVSpeechSynthesizer()
                     
                     let speechUtterance = AVSpeechUtterance(string: (self.responseLabels?[0].name!)!)
