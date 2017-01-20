@@ -74,86 +74,62 @@ class ViewController: UIViewController {
                                 let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageDataSampleBuffer)
                                 self.stillImage = UIImage(data: imageData!)})
             
-            let rekognitionClient:AWSRekognition = AWSRekognition.default()
-            //
-            let image = AWSRekognitionImage()
-            if self.stillImage != nil {
-                image!.bytes = UIImageJPEGRepresentation(self.stillImage!, 0.8)
-            }
-            let request: AWSRekognitionDetectLabelsRequest = AWSRekognitionDetectLabelsRequest()
-            request.image = image
+            self.detectImage(stillImage: self.stillImage)
             
-            rekognitionClient.detectLabels(request) {(response:AWSRekognitionDetectLabelsResponse?, error:Error?) in
-                if error == nil {
-                    self.responseLabels = (response?.labels)!
-                    
-                    
-                    let audioSession = AVAudioSession.sharedInstance()
-                    do {
-                        try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord, with: AVAudioSessionCategoryOptions.defaultToSpeaker)
-                    }
-                    catch {
-                        print("Error")
-                    }
-
-                   //do some removing here and there. 
-                    for(index,var label) in (self.responseLabels?.enumerated())! {
-                        if label.name == "Clothing"{
-                            self.responseLabels?.remove(at: index)
-                    }
-                    }
-                    
-                    
-                    let speechSynthesizer = AVSpeechSynthesizer()
-                    
-                    let speechUtterance = AVSpeechUtterance(string: (self.responseLabels?[0].name!)!)
-                    speechUtterance.rate = 0.25
-                    speechUtterance.pitchMultiplier = 0.25
-                    speechUtterance.volume = 1.0
-                    speechSynthesizer.speak(speechUtterance)
-
-                }
-                else {
-                    print(error!)
-                }
             }
-        }
         
-        //speak out the shit. 
         
         
         volumeButtonHandler = JPSVolumeButtonHandler(up: block, downBlock: block)
         volumeButtonHandler?.start(true)
         
-        
-//        let sourceImage = UIImage(named: "TestImage.jpg")
-       
-//
-////        guard let request = AWSRekognitionDetectLabelsRequest() else {
-////            puts("Unable to initialize AWSRekognitionDetectLabelsRequest.")
-////            return
-////        }
-////        
-////        request.image = image
-////        request.maxLabels = 3
-////        request.minConfidence = 90
-////        
-////        guard let response = AWSRekognitionDetectLabelsResponse() else {
-////            puts("Unable to initialize AWSRekognitionDetectLabelsRequest.")
-////            return
-////        }
-////        print(response.labels)
-        
-       
+    }
 
         
-    }
+    
+    
+    func detectImage(stillImage:UIImage?) {
+        let rekognitionClient:AWSRekognition = AWSRekognition.default()
+        let image = AWSRekognitionImage()
+        if stillImage != nil {
+            image!.bytes = UIImageJPEGRepresentation(stillImage!, 0.8)
+        }
+        let request: AWSRekognitionDetectLabelsRequest = AWSRekognitionDetectLabelsRequest()
+        request.image = image
+        
+        rekognitionClient.detectLabels(request) {(response:AWSRekognitionDetectLabelsResponse?, error:Error?) -> () in
+            if error == nil {
+                self.responseLabels = (response?.labels)!
+                let audioSession = AVAudioSession.sharedInstance()
+                do {
+                    try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord, with: AVAudioSessionCategoryOptions.defaultToSpeaker)
+                }
+                catch {
+                    print("Error")
+                }
+                
+                let speechSynthesizer = AVSpeechSynthesizer()
+                
+                if(self.responseLabels != nil ) {
+                    let speechUtterance = AVSpeechUtterance(string: (self.responseLabels?[0].name!)!)
+                    speechUtterance.volume = 1.0
+                    speechSynthesizer.speak(speechUtterance)
+                } else {
+                    print("Error. No speech. Null responseLabels")
+                }
+
+
+                
+            }
+        }
+}
+    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
 
-
 }
+
 
