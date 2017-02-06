@@ -4,6 +4,10 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Need to save shit for now.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>I need to use your motion. Cool with that, right?</string>
 	<key>CFBundleDisplayName</key>
 	<string>Isaiah2918</string>
 	<key>CFBundleExecutable</key>

@@ -10,7 +10,9 @@ import UIKit
 import AWSRekognition
 import AWSCore
 import AVFoundation
-import JPSVolumeButtonHandler
+import CoreMotion
+import AudioToolbox
+
 
 class ViewController: UIViewController {
     
@@ -19,14 +21,15 @@ class ViewController: UIViewController {
     var stillImageOutput: AVCaptureStillImageOutput?
     var stillImage:UIImage?
     var cameraPreviewLayer:AVCaptureVideoPreviewLayer?
-    var volumeButtonHandler: JPSVolumeButtonHandler?
     
     var backFacingCamera:AVCaptureDevice?
     var currentDevice:AVCaptureDevice?
     
     var responseLabels: [AWSRekognitionLabel]?
     
+    let activityManager = CMMotionActivityManager()
     
+    @IBOutlet weak var testimageview: UIImageView!
 
     
 
@@ -67,21 +70,45 @@ class ViewController: UIViewController {
         captureSession.startRunning()
         
         
-        let block = { () -> Void in
-            let videoConnection = self.stillImageOutput?.connection(withMediaType: AVMediaTypeVideo)
-            self.stillImageOutput?.captureStillImageAsynchronously(from: videoConnection,
-                            completionHandler: { (imageDataSampleBuffer, error) -> Void in
-                                let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageDataSampleBuffer)
-                                self.stillImage = UIImage(data: imageData!)})
-            
-            self.detectImage(stillImage: self.stillImage)
-            
-            }
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(self.tapView(_:)))
+        
+        self.view.addGestureRecognizer(gesture)
         
         
+      
         
-        volumeButtonHandler = JPSVolumeButtonHandler(up: block, downBlock: block)
-        volumeButtonHandler?.start(true)
+
+//        let date = NSDate()
+//        let calendar = NSCalendar.current
+//        let seconds = calendar.component(.second, from: date as Date)
+        
+    
+//        if (CMMotionActivityManager.isActivityAvailable()){
+//            self.activityManager.startActivityUpdates(to: .main, withHandler: { (data: CMMotionActivity?) in
+//                DispatchQueue.main.async {
+//                    if (data?.stationary)! {
+//                        //print(data?.timestamp)
+//                        
+//                       
+//                        
+//                        print("Stationary for 10 seconds")
+//                        
+//                        self.detectImage(stillImage: self.stillImage)
+//                    }
+//                    else if(data?.walking)! {
+//                        print("Walking")
+//                    }
+//                }
+//            })
+//        }
+        //self.detectImage(stillImage: self.stillImage)
+        
+        
+//        if (CMMotionActivityManager.isActivityAvailable()) {
+//            self.activityManager.queryActivityStarting(from: date as Date, to: date.addingTimeInterval(2) as Date, to: .main, withHandler: { (data : [CMMotionActivity]?, error) in
+//                
+//            })
+//        }
         
     }
 
@@ -89,6 +116,7 @@ class ViewController: UIViewController {
     
     
     func detectImage(stillImage:UIImage?) {
+        print("Working on recognizing shit.")
         let rekognitionClient:AWSRekognition = AWSRekognition.default()
         let image = AWSRekognitionImage()
         if stillImage != nil {
@@ -108,10 +136,14 @@ class ViewController: UIViewController {
                     print("Error")
                 }
                 
-                let speechSynthesizer = AVSpeechSynthesizer()
-                
+                let speechSynthesizer = AVSpeechSynthesizer()                
                 if(self.responseLabels != nil ) {
-                    let speechUtterance = AVSpeechUtterance(string: (self.responseLabels?[0].name!)!)
+                    var responseNames = [String]()
+                    for responseLabel in self.responseLabels! {
+                        responseNames.append(responseLabel.name!)
+                    }
+                    responseNames = responseNames.filter{ ["Human","Clothing","Ankle","People"].contains($0) }
+                    let speechUtterance = AVSpeechUtterance(string: responseNames.first!)
                     speechUtterance.volume = 1.0
                     speechSynthesizer.speak(speechUtterance)
                 } else {
@@ -123,6 +155,22 @@ class ViewController: UIViewController {
             }
         }
 }
+    
+    func tapView(_ sender:UITapGestureRecognizer){
+        // do other task
+        AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
+        
+        let videoConnection = self.stillImageOutput?.connection(withMediaType: AVMediaTypeVideo)
+        self.stillImageOutput?.captureStillImageAsynchronously(from: videoConnection,
+                                                               completionHandler: { (imageDataSampleBuffer, error) -> Void in
+                                                                let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageDataSampleBuffer)
+//                                                                UIImageWriteToSavedPhotosAlbum(UIImage(data:imageData!)!, nil, nil, nil)
+                                                                self.stillImage = UIImage(data: imageData!)})
+//        self.testimageview.image = self.stillImage
+        self.detectImage(stillImage: self.stillImage)
+        
+    }
+
     
 
     override func didReceiveMemoryWarning() {
