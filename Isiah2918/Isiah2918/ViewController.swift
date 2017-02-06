@@ -133,16 +133,20 @@ class ViewController: UIViewController {
                     try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord, with: AVAudioSessionCategoryOptions.defaultToSpeaker)
                 }
                 catch {
-                    print("Error")
+                    let speechSynthesizer = AVSpeechSynthesizer()
+                    let speechUtterance = AVSpeechUtterance(string: "There was an error. Try again.")
+                    speechUtterance.volume = 1.0
+                    speechSynthesizer.speak(speechUtterance)
                 }
                 
-                let speechSynthesizer = AVSpeechSynthesizer()                
+                let speechSynthesizer = AVSpeechSynthesizer()
                 if(self.responseLabels != nil ) {
                     var responseNames = [String]()
                     for responseLabel in self.responseLabels! {
                         responseNames.append(responseLabel.name!)
                     }
-                    responseNames = responseNames.filter{ ["Human","Clothing","Ankle","People"].contains($0) }
+                    responseNames = responseNames.filter{ !["Human","Clothing","Ankle","People","Person","Paper","Indoors","Room","Interior Design","Finger","Knitting"].contains($0) }
+                    print(responseNames)
                     let speechUtterance = AVSpeechUtterance(string: responseNames.first!)
                     speechUtterance.volume = 1.0
                     speechSynthesizer.speak(speechUtterance)
