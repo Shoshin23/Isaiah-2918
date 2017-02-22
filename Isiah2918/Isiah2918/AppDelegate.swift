@@ -7,9 +7,7 @@
 //
 
 import UIKit
-import AWSCore
-import AWSRekognition
-
+import CloudSight
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -19,15 +17,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        let credentialsProvider = AWSCognitoCredentialsProvider(
-            regionType: AWSRegionType.usWest2,
-            identityPoolId: "us-west-2:cc8705a0-b60f-46bc-84ec-6745f4579243")
-        let configuration = AWSServiceConfiguration(
-            region: AWSRegionType.usEast1,
-            credentialsProvider: credentialsProvider)
-        AWSServiceManager.default().defaultServiceConfiguration = configuration
-
-        
+        CloudSightConnection.sharedInstance().consumerKey = "643KbzycdTcXMB81t8ybFw"
+        CloudSightConnection.sharedInstance().consumerSecret = "dW3TH4Si1gDF3P1NgVT08w"
         return true
     }
 

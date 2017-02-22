@@ -7,12 +7,9 @@
 //
 
 import UIKit
-import AWSRekognition
-import AWSCore
 import AVFoundation
 import CoreMotion
-import AudioToolbox
-
+import CloudSight
 
 class ViewController: UIViewController {
     
@@ -25,9 +22,7 @@ class ViewController: UIViewController {
     var backFacingCamera:AVCaptureDevice?
     var currentDevice:AVCaptureDevice?
     
-    var responseLabels: [AWSRekognitionLabel]?
     
-    let activityManager = CMMotionActivityManager()
     
     @IBOutlet weak var testimageview: UIImageView!
 
@@ -70,9 +65,9 @@ class ViewController: UIViewController {
         captureSession.startRunning()
         
         
-        let gesture = UITapGestureRecognizer(target: self, action: #selector(self.tapView(_:)))
-        
-        self.view.addGestureRecognizer(gesture)
+//        let gesture = UITapGestureRecognizer(target: self, action: #selector(self.tapView(_:)))
+//        
+//        self.view.addGestureRecognizer(gesture)
         
         
       
@@ -115,65 +110,8 @@ class ViewController: UIViewController {
         
     
     
-    func detectImage(stillImage:UIImage?) {
-        print("Working on recognizing shit.")
-        let rekognitionClient:AWSRekognition = AWSRekognition.default()
-        let image = AWSRekognitionImage()
-        if stillImage != nil {
-            image!.bytes = UIImageJPEGRepresentation(stillImage!, 0.8)
-        }
-        let request: AWSRekognitionDetectLabelsRequest = AWSRekognitionDetectLabelsRequest()
-        request.image = image
-        
-        rekognitionClient.detectLabels(request) {(response:AWSRekognitionDetectLabelsResponse?, error:Error?) -> () in
-            if error == nil {
-                self.responseLabels = (response?.labels)!
-                let audioSession = AVAudioSession.sharedInstance()
-                do {
-                    try audioSession.setCategory(AVAudioSessionCategoryPlayAndRecord, with: AVAudioSessionCategoryOptions.defaultToSpeaker)
-                }
-                catch {
-                    let speechSynthesizer = AVSpeechSynthesizer()
-                    let speechUtterance = AVSpeechUtterance(string: "There was an error. Try again.")
-                    speechUtterance.volume = 1.0
-                    speechSynthesizer.speak(speechUtterance)
-                }
-                
-                let speechSynthesizer = AVSpeechSynthesizer()
-                if(self.responseLabels != nil ) {
-                    var responseNames = [String]()
-                    for responseLabel in self.responseLabels! {
-                        responseNames.append(responseLabel.name!)
-                    }
-                    responseNames = responseNames.filter{ !["Human","Clothing","Ankle","People","Person","Paper","Indoors","Room","Interior Design","Finger","Knitting"].contains($0) }
-                    print(responseNames)
-                    let speechUtterance = AVSpeechUtterance(string: responseNames.first!)
-                    speechUtterance.volume = 1.0
-                    speechSynthesizer.speak(speechUtterance)
-                } else {
-                    print("Error. No speech. Null responseLabels")
-                }
-
-
-                
-            }
-        }
-}
-    
-    func tapView(_ sender:UITapGestureRecognizer){
-        // do other task
-        AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
-        
-        let videoConnection = self.stillImageOutput?.connection(withMediaType: AVMediaTypeVideo)
-        self.stillImageOutput?.captureStillImageAsynchronously(from: videoConnection,
-                                                               completionHandler: { (imageDataSampleBuffer, error) -> Void in
-                                                                let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageDataSampleBuffer)
-//                                                                UIImageWriteToSavedPhotosAlbum(UIImage(data:imageData!)!, nil, nil, nil)
-                                                                self.stillImage = UIImage(data: imageData!)})
-//        self.testimageview.image = self.stillImage
-        self.detectImage(stillImage: self.stillImage)
-        
-    }
+  
+  
 
     
 
@@ -183,5 +121,6 @@ class ViewController: UIViewController {
     }
 
 }
+
 
 
